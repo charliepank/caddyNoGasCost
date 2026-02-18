@@ -10,6 +10,7 @@ on:
     branches: [ main ]
     paths:
       - 'Caddyfile'
+  workflow_dispatch:
 
 jobs:
   deploy:
