@@ -1,0 +1,206 @@
+# Global options
+{
+	# Let Caddy handle ACME automatically
+	admin off
+	# Enable debug logging
+	log {
+		level DEBUG
+		output stdout
+	}
+}
+
+# NoGasCost API Domain - Production Gas Payer Service (Base Mainnet)
+api.nogascost.com, base.nogascost.com {
+	# Configure TLS with more flexible settings
+	tls {
+		protocols tls1.2 tls1.3
+		# Add cipher suites for better compatibility
+		ciphers TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+	}
+
+	# Handle OPTIONS preflight first
+	@options {
+		method OPTIONS
+	}
+	handle @options {
+		header {
+			Access-Control-Allow-Origin {http.request.header.Origin}
+			Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+			Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+			Access-Control-Allow-Credentials true
+			Access-Control-Max-Age "3600"
+			Access-Control-Expose-Headers "Content-Length, Content-Range"
+		}
+		respond 204
+	}
+
+	# Global headers for all other requests
+	header {
+		Access-Control-Allow-Origin {http.request.header.Origin}
+		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+		Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+		Access-Control-Allow-Credentials true
+	}
+
+	# Route all requests to production gas-payer-service
+	handle /* {
+		reverse_proxy gas-payer-service:8080 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# Health check endpoint
+	handle /health {
+		respond "NoGasCost API OK" 200
+	}
+}
+
+# NoGasCost Base Sepolia Domain - Development Gas Payer Service
+baseSepolia.nogascost.com {
+	# Configure TLS with more flexible settings
+	tls {
+		protocols tls1.2 tls1.3
+		# Add cipher suites for better compatibility
+		ciphers TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+	}
+
+	# Handle OPTIONS preflight first
+	@options {
+		method OPTIONS
+	}
+	handle @options {
+		header {
+			Access-Control-Allow-Origin {http.request.header.Origin}
+			Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+			Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+			Access-Control-Allow-Credentials true
+			Access-Control-Max-Age "3600"
+			Access-Control-Expose-Headers "Content-Length, Content-Range"
+		}
+		respond 204
+	}
+
+	# Global headers for all other requests
+	header {
+		Access-Control-Allow-Origin {http.request.header.Origin}
+		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+		Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+		Access-Control-Allow-Credentials true
+	}
+
+	# Route all requests to baseDev gas-payer-service
+	handle /* {
+		reverse_proxy baseDev-gas-payer-service:8080 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# Health check endpoint
+	handle /health {
+		respond "NoGasCost Base Sepolia OK" 200
+	}
+}
+
+# NoGasCost Avalanche Fuji Domain - Development Gas Payer Service
+avalanchefuji.nogascost.com {
+	# Configure TLS with more flexible settings
+	tls {
+		protocols tls1.2 tls1.3
+		# Add cipher suites for better compatibility
+		ciphers TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+	}
+
+	# Handle OPTIONS preflight first
+	@options {
+		method OPTIONS
+	}
+	handle @options {
+		header {
+			Access-Control-Allow-Origin {http.request.header.Origin}
+			Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+			Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+			Access-Control-Allow-Credentials true
+			Access-Control-Max-Age "3600"
+			Access-Control-Expose-Headers "Content-Length, Content-Range"
+		}
+		respond 204
+	}
+
+	# Global headers for all other requests
+	header {
+		Access-Control-Allow-Origin {http.request.header.Origin}
+		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+		Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+		Access-Control-Allow-Credentials true
+	}
+
+	# Route all requests to avalancheFuji gas-payer-service
+	handle /* {
+		reverse_proxy avalancheFuji-gas-payer-service:8080 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# Health check endpoint
+	handle /health {
+		respond "NoGasCost Avalanche Fuji OK" 200
+	}
+}
+
+# Avalanche Mainnet Domain - Gas Payer Service
+avalanche.nogascost.com {
+	# Configure TLS with more flexible settings
+	tls {
+		protocols tls1.2 tls1.3
+		# Add cipher suites for better compatibility
+		ciphers TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+	}
+
+	# Handle OPTIONS preflight first
+	@options {
+		method OPTIONS
+	}
+	handle @options {
+		header {
+			Access-Control-Allow-Origin {http.request.header.Origin}
+			Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+			Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+			Access-Control-Allow-Credentials true
+			Access-Control-Max-Age "3600"
+			Access-Control-Expose-Headers "Content-Length, Content-Range"
+		}
+		respond 204
+	}
+
+	# Global headers for all other requests
+	header {
+		Access-Control-Allow-Origin {http.request.header.Origin}
+		Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+		Access-Control-Allow-Headers "Content-Type, Authorization, Cache-Control, Pragma, X-Clear-Cookies"
+		Access-Control-Allow-Credentials true
+	}
+
+	# Route all requests to avalanche gas-payer-service
+	handle /* {
+		reverse_proxy avalanche-gas-payer-service:8080 {
+			header_up Host {upstream_hostport}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# Health check endpoint
+	handle /health {
+		respond "NoGasCost Avalanche OK" 200
+	}
+}

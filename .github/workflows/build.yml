@@ -1,0 +1,80 @@
+name: Deploy Caddy NoGasCost
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'test*'
+      - 'cherry*'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Caddyfile'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ startsWith(github.ref, 'refs/tags/v') && 'production' || startsWith(github.ref, 'refs/tags/cherry') && 'cherry' || 'test' }}
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set environment specific variables
+      id: env_vars
+      run: |
+        echo "GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo '')" >> $GITHUB_ENV
+        echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+    - name: Deploy to GCP
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ vars.VM_IP }} >> ~/.ssh/known_hosts
+
+        # Create remote directories and transfer files
+        ssh -i ~/.ssh/deploy_key gituser@${{ vars.VM_IP }} '
+          mkdir -p ~/caddy_nogascost_temp
+          sudo mkdir -p /etc/caddy-nogascost
+        '
+
+        # Transfer to temp
+        scp -i ~/.ssh/deploy_key ./Caddyfile gituser@${{ vars.VM_IP }}:~/caddy_nogascost_temp/
+
+        # Move with sudo and restart Caddy
+        ssh -i ~/.ssh/deploy_key gituser@${{ vars.VM_IP }} "
+          sudo cp -r ~/caddy_nogascost_temp/* /etc/caddy-nogascost
+          sudo chmod 644 /etc/caddy-nogascost/Caddyfile
+          rm -rf /home/gituser/caddy_nogascost_temp
+
+          docker stop caddy-nogascost 2>/dev/null || echo 'No existing container to stop'
+          docker rm caddy-nogascost 2>/dev/null || echo 'No existing container to remove'
+
+          # Create webnet if it doesn't exist
+          docker network create webnet || true
+
+          # Pull latest Caddy image
+          docker pull caddy:2.7-alpine
+
+          # Start new container with versioning metadata
+          docker run -d \
+            --name caddy-nogascost \
+            --network webnet \
+            --restart unless-stopped \
+            --memory=128m \
+            -p 80:80 \
+            -p 443:443 \
+            -v caddy_nogascost_data:/data \
+            -v caddy_nogascost_config:/config \
+            -v /etc/caddy-nogascost/Caddyfile:/etc/caddy/Caddyfile \
+            -e CADDY_DEBUG=true \
+            -e GIT_TAG=${{ env.GIT_TAG }} \
+            -e GIT_SHA=${{ env.GIT_SHA }} \
+            caddy:2.7-alpine
+        "
