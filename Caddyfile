@@ -108,7 +108,7 @@ baseSepolia.nogascost.com {
 }
 
 # NoGasCost Avalanche Fuji Domain - Development Gas Payer Service
-avalanchefuji.nogascost.com {
+avalancheFuji.nogascost.com {
 	# Configure TLS with more flexible settings
 	tls {
 		protocols tls1.2 tls1.3
