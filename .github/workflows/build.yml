@@ -63,7 +63,7 @@ jobs:
             --name caddy-nogascost \
             --network webnet \
             --restart unless-stopped \
-            --memory=128m \
+            --memory=50m \
             -p 80:80 \
             -p 443:443 \
             -v caddy_nogascost_data:/data \
