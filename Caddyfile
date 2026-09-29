@@ -204,3 +204,15 @@ avalanche.nogascost.com {
 		respond "NoGasCost Avalanche OK" 200
 	}
 }
+# White-label demo - a stand-in partner site hosting the StableDrop white-label embed.
+# Container deployed by the conduit-ucpi/whitelabel-demo repo onto webnet.
+escrow-me.com {
+        reverse_proxy whitelabel-demo:3000 {
+                header_up X-Real-IP {remote_host}
+                header_up X-Forwarded-For {remote_host}
+                header_up X-Forwarded-Proto {scheme}
+        }
+}
+www.escrow-me.com {
+        redir https://escrow-me.com{uri} permanent
+}
