@@ -5,8 +5,6 @@ Caddy reverse proxy configuration for NoGasCost API services across multiple blo
 ## Domains
 
 - **api.nogascost.com, base.nogascost.com** - Base Mainnet production API
-- **baseSepolia.nogascost.com** - Base Sepolia testnet API
-- **avalanchefuji.nogascost.com** - Avalanche Fuji testnet API
 - **avalanche.nogascost.com** - Avalanche Mainnet API
 
 ## Deployment
